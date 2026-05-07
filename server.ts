@@ -130,12 +130,10 @@ app.use((err: any, req: any, res: any, next: any) => {
   });
 });
 
-// Start server if main module
-if (import.meta.url === `file://${__filename}`) {
-  const PORT = 3000;
-  server.listen(PORT, '0.0.0.0', () => {
-    console.log(`\n🚌 ShutliX v2 running on http://0.0.0.0:${PORT}`);
-  });
-}
+// Start server
+const PORT = Number(process.env.PORT) || 3000;
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`\n🚀 ShutliX v2 [${process.env.NODE_ENV || 'production'}] running on port ${PORT}`);
+});
 
 export default app;

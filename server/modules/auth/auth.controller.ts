@@ -24,15 +24,22 @@ const hashToken = (token: string) => crypto.createHash('sha256').update(token).d
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    let { name, email, password, role, organizationId, studentId, licenseNumber } = req.body;
+    let { name, email, password, role, organizationId, orgCode, studentId, licenseNumber } = req.body;
     email = email.toLowerCase().trim();
-    
+    // Resolve organizationId from orgCode if provided
+    if (!organizationId && orgCode) {
+      const org = await Organization.findOne({ code: orgCode.toUpperCase() });
+      if (!org) return ApiResponse.error(res, 'Organization code not found', 400);
+      organizationId = org._id;
+    }
+    email = email.toLowerCase().trim();
+
     // Check if user exists
     const existing = await User.findOne({ email });
     if (existing) return ApiResponse.error(res, 'User already exists', 400);
 
     const user = await User.create({
-      name, email, password, role, organizationId, studentId, licenseNumber, 
+      name, email, password, role, organizationId, studentId, licenseNumber,
       isVerified: true
     });
 
@@ -49,7 +56,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
   try {
     const { email, password, organizationCode } = req.body;
     console.log(`Login attempt for: ${email}`);
-    
+
     const user: any = await User.findOne({ email }).select('+password +lockUntil +loginAttempts').populate('organizationId');
     if (!user) {
       console.log(`Login failed: User ${email} not found`);
@@ -63,7 +70,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
     const isMatch = await user.comparePassword(password);
     console.log(`Password match for ${email}: ${isMatch} (Candidate length: ${password?.length}, Hash length: ${user.password?.length})`);
-    
+
     if (!isMatch) {
       console.log(`Login failed: Invalid password for ${email}. Double check your spelling and casing.`);
       user.loginAttempts += 1;
@@ -78,10 +85,10 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
 
     user.loginAttempts = 0;
     user.lockUntil = null;
-    
+
     const accessToken = signToken(user._id.toString(), user.role, user.organizationId?._id);
     const refreshToken = signRefreshToken(user._id.toString());
-    
+
     user.refreshToken = hashToken(refreshToken);
     await user.save();
 
@@ -105,33 +112,42 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
 
     const decoded: any = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
     const user = await User.findOne({ _id: decoded.id, refreshToken: hashToken(refreshToken) });
-    
+
     if (!user) return ApiResponse.error(res, 'Invalid session', 401);
 
     const accessToken = signToken(user._id.toString(), user.role, user.organizationId);
     return ApiResponse.success(res, { accessToken });
-  } catch (err) { 
+  } catch (err) {
     return ApiResponse.error(res, 'Invalid refresh token', 401);
   }
 };
 
 export const sendOTP = async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      let { email } = req.body;
-      email = email.toLowerCase().trim();
-      
-      const lastSent = await redis.get(`otp_sent:${email}`);
-      if (lastSent) return ApiResponse.error(res, 'Please wait 60s before requesting again', 429);
+  try {
+    let { email } = req.body;
+    email = email.toLowerCase().trim();
 
-      const otp = crypto.randomInt(100000, 999999).toString();
-      console.log(`[OTP] Generated ${otp} for ${email}`);
-      
-      await redis.set(`otp:${email}`, otp, 300);
-      await redis.set(`otp_sent:${email}`, 'true', 60);
+    // Rate‑limit: allow max 5 OTP requests per minute per email
+    const attemptsKey = `otp_attempts:${email}`;
+    const attempts = await redis.get(attemptsKey);
+    if (attempts && Number(attempts) >= 5) {
+      return ApiResponse.error(res, 'Too many OTP requests, please try again later', 429);
+    }
+    // Increment counter and ensure it expires after 60 seconds
+    await redis.incr(attemptsKey);
+    await redis.expire(attemptsKey, 300);
 
-      await sendEmail({ to: email, subject: 'Verification Code', html: otpTemplate(otp, 'verify') });
-      return ApiResponse.success(res, null, 'OTP sent');
-    } catch (err) { next(err); }
+    const lastSent = await redis.get(`otp_sent:${email}`);
+    if (lastSent) return ApiResponse.error(res, 'Please wait 60s before requesting again', 429);
+
+    const otp = crypto.randomInt(100000, 999999).toString();
+    console.log(`[OTP] Generated ${otp} for ${email}`);
+    await redis.set(`otp:${email}`, otp, 300);
+    await redis.set(`otp_sent:${email}`, 'true', 60);
+
+    await sendEmail({ to: email, subject: 'Verification Code', html: otpTemplate(otp, 'verify') });
+    return ApiResponse.success(res, null, 'OTP sent');
+  } catch (err) { next(err); }
 };
 
 export const verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
@@ -176,15 +192,15 @@ export const getMe = async (req: AuthRequest, res: Response, next: NextFunction)
 export const logout = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.split(' ')[1] || req.cookies?.jwt;
-    
+
     if (token) {
-        // Blacklist token for its remaining life (or default 1h)
-        await redis.set(`bl_${token}`, 'true', 3600);
+      // Blacklist token for its remaining life (or default 1h)
+      await redis.set(`bl_${token}`, 'true', 3600);
     }
 
     // Also clear refresh token from DB
     if (req.user) {
-        await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } });
+      await User.findByIdAndUpdate(req.user._id, { $unset: { refreshToken: 1 } });
     }
 
     return ApiResponse.success(res, null, 'Logged out successfully');

@@ -34,6 +34,16 @@ export const get = async (key: string): Promise<string | null> => {
   return client.get(key);
 };
 
+export const incr = async (key: string): Promise<number> => {
+  if (!client) throw new Error('Redis client not connected');
+  return client.incr(key);
+};
+
+export const expire = async (key: string, seconds: number): Promise<number> => {
+  if (!client) throw new Error('Redis client not connected');
+  return client.expire(key, seconds);
+};
+
 export const del = async (key: string): Promise<number> => {
   if (!client) return 0;
   return client.del(key);

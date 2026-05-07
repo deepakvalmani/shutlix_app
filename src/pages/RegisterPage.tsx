@@ -193,9 +193,15 @@ export default function RegisterPage() {
                           ))}
                        </div>
 
-                       <Button className="w-full h-14" size="lg" onClick={handleNext}>
-                          Next Step <ArrowRight size={18} />
-                       </Button>
+                        <Button className="w-full h-14" size="lg" onClick={handleNext} disabled={loading}>
+                          {loading ? (
+                            <LoadingSpinner />
+                          ) : (
+                            <>
+                              Next Step <ArrowRight size={18} />
+                            </>
+                          )}
+                        </Button>
                     </GlassCard>
                  </motion.div>
                )}
@@ -263,7 +269,34 @@ export default function RegisterPage() {
                        </p>
                     </div>
 
+                    {error && (
+                      <div className="p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold flex items-center gap-3 mb-4">
+                        <AlertCircle size={14} /> {error}
+                      </div>
+                    )}
                     <OTPInput onComplete={handleRegister} />
+
+                    <div className="flex justify-center">
+                      <button 
+                         disabled={loading || timer > 0}
+                         className="text-xs font-bold uppercase tracking-widest text-brand disabled:opacity-20 hover:underline transition-all"
+                         onClick={async () => {
+                           setLoading(true);
+                           try {
+                             await sendOTP(form.email);
+                             toast.success('Verification code resent');
+                             setTimer(59);
+                           } catch (err: any) {
+                             console.error('Resend OTP error:', err);
+                             setError(err.response?.data?.message || 'Failed to resend verification code');
+                           } finally {
+                             setLoading(false);
+                           }
+                         }}
+                       >
+                         {timer > 0 ? `Resend Code in ${timer}s` : 'Resend Code'}
+                       </button>
+                    </div>
 
                     <button 
                       onClick={() => setStep(2)}
@@ -281,6 +314,7 @@ export default function RegisterPage() {
             </div>
          </div>
       </main>
+      <RegistrationBot />
       
       <footer className="h-16 flex items-center justify-center relative z-20">
          <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-30">© 2026 SHUTLIX MOBILITY CORPORATION</p>

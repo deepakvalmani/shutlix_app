@@ -1,0 +1,6 @@
+{
+  "name": "ShutliX - Real-time Shuttle Tracking",
+  "description": "A full-stack institutional transit platform tailored for IBA Karachi, featuring real-time shuttle tracking, professional driver onboarding, emergency SOS protocols, and advanced fleet analytics.",
+  "requestFramePermissions": ["geolocation"],
+  "majorCapabilities": []
+}

@@ -1,0 +1,231 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Outfit", "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-brand: #1A56DB;
+  --color-brand-light: #3F83F8;
+  --color-brand-subtle: rgba(26, 86, 219, 0.1);
+  --color-bg-base: #F9FAFB;
+  --color-border-brand: rgba(26, 86, 219, 0.25);
+  
+  --color-text-primary: #111827;
+  --color-text-secondary: #374151;
+  --color-text-muted: #4B5563;
+  
+  --color-glass: rgba(255, 255, 255, 0.78);
+  --color-glass-heavy: rgba(255, 255, 255, 0.92);
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@500&display=swap');
+
+:root {
+  --brand: #1A56DB;
+  --brand-light: #3F83F8;
+  --brand-subtle: rgba(26,86,219,0.1);
+  --bg-base: #F9FAFB;
+  --text-1: #111827;
+  --text-2: #374151;
+  --text-3: #4B5563;
+  --text-4: #9CA3AF;
+  --text-5: #D1D5DB;
+  --glass-1: rgba(255,255,255,0.78);
+  --glass-2: rgba(255,255,255,0.45);
+  --glass-3: rgba(255,255,255,0.92);
+  --border-1: rgba(229,231,235,0.8);
+  --border-2: rgba(229,231,235,0.5);
+  --border-brand: rgba(26,86,219,0.25);
+  --whatsapp-bg: #efeae2;
+}
+
+.dark {
+  --brand: #3B82F6;
+  --brand-light: #60A5FA;
+  --brand-subtle: rgba(59,130,246,0.1);
+  --bg-base: #030712;
+  --text-1: #F9FAFB;
+  --text-2: #E5E7EB;
+  --text-3: #9CA3AF;
+  --text-4: #6B7280;
+  --text-5: #374151;
+  --glass-1: rgba(17,24,39,0.78);
+  --glass-2: rgba(17,24,39,0.45);
+  --glass-3: rgba(17,24,39,0.92);
+  --border-1: rgba(31,41,55,0.8);
+  --border-2: rgba(31,41,55,0.5);
+  --border-brand: rgba(59,130,246,0.25);
+  --whatsapp-bg: #0b141a;
+}
+
+@layer base {
+  body {
+    @apply antialiased text-sm overflow-x-hidden;
+    background: var(--bg-base);
+    color: var(--text-2);
+    font-family: var(--font-sans);
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+}
+
+@layer components {
+  .input {
+    @apply w-full px-4 py-2.5 rounded-xl transition-all outline-none text-sm font-medium;
+    background: var(--glass-1);
+    border: 1px solid var(--border-1);
+    color: var(--text-1);
+    &:focus {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px var(--brand-subtle);
+    }
+  }
+
+  .label {
+    @apply block text-xs font-bold uppercase tracking-widest mb-1.5 ml-1 opacity-70;
+    color: var(--text-3);
+  }
+
+  .btn-primary {
+    @apply flex items-center justify-center px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95 disabled:opacity-50 shadow-lg shadow-blue-500/20;
+    background: var(--brand);
+    color: white;
+    &:hover { filter: brightness(1.1); }
+  }
+
+  .btn-secondary {
+    @apply flex items-center justify-center px-6 py-2.5 rounded-xl font-bold transition-all active:scale-95;
+    background: var(--glass-1);
+    border: 1px solid var(--border-1);
+    color: var(--text-2);
+    &:hover { background: var(--glass-2); }
+  }
+
+  .btn-ghost {
+    @apply flex items-center justify-center rounded-xl transition-all active:scale-95 hover:bg-[var(--glass-2)];
+  }
+
+  .btn-icon {
+    @apply w-9 h-9 p-0;
+  }
+
+  .glass-md {
+    @apply backdrop-blur-md;
+    background: var(--glass-1);
+    border: 1px solid var(--border-1);
+  }
+
+  .glass-heavy {
+    @apply backdrop-blur-2xl;
+    background: var(--glass-3);
+    border: 1px solid var(--border-1);
+  }
+
+  .dot-green {
+    @apply w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)];
+  }
+
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-500;
+  }
+
+  .loader {
+    @apply flex gap-1;
+  }
+  .loader span {
+    @apply w-1.5 h-1.5 rounded-full bg-current animate-bounce;
+  }
+  .loader span:nth-child(2) { animation-delay: 0.1s; }
+  .loader span:nth-child(3) { animation-delay: 0.2s; }
+}
+
+/* Map Markers */
+.user-pulse {
+  @apply w-4 h-4 rounded-full bg-blue-500 border-2 border-white shadow-lg relative;
+}
+.user-pulse::after {
+  content: '';
+  @apply absolute -inset-2 rounded-full bg-blue-500 opacity-20 animate-ping;
+}
+
+.stop-marker {
+  @apply relative;
+}
+
+.shuttle-marker-container {
+  @apply relative flex flex-col items-center;
+}
+
+.shuttle-marker-glow {
+  @apply absolute -inset-2 rounded-full opacity-30 blur-md transition-opacity duration-700;
+}
+
+.shuttle-marker-icon {
+  @apply w-10 h-10 rounded-xl border-2 border-white flex items-center justify-center shadow-xl z-10 transition-opacity duration-500;
+}
+
+.movement-beam {
+  @apply absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[100%] w-24 h-40 pointer-events-none;
+  background: linear-gradient(to top, rgba(59, 130, 246, 0.4) 0%, rgba(59, 130, 246, 0.1) 50%, transparent 100%);
+  clip-path: polygon(50% 100%, 0% 0%, 100% 0%);
+  transform-origin: bottom center;
+  filter: blur(8px);
+  opacity: 0.8;
+  z-index: 0;
+}
+
+.shuttle-label-badge {
+  @apply absolute -top-4 px-2 py-0.5 rounded-full text-[9px] font-black italic text-white shadow-sm z-20 border border-white/20 whitespace-nowrap;
+}
+
+.shuttle-pulse {
+  @apply absolute -inset-1 rounded-2xl border-2 border-brand opacity-0 z-0;
+  animation: shuttlePulse 2.5s infinite;
+}
+
+@keyframes shuttlePulse {
+    0% { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.5); opacity: 0; }
+}
+
+.shuttle-offline {
+  filter: grayscale(100%) brightness(0.8);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--text-5);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
+
+.leaflet-container {
+    background: var(--bg-base) !important;
+}
+
+.glow-violet {
+    box-shadow: 0 8px 16px rgba(124, 58, 237, 0.25);
+}
+
+/* Route Path Animation */
+.route-path-animated {
+  stroke-dasharray: 10, 20;
+  animation: dash 3.5s linear infinite;
+}
+
+@keyframes dash {
+  from {
+    stroke-dashoffset: 300;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.route-arrow-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}

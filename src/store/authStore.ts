@@ -9,6 +9,7 @@ interface AuthState {
   checkAuth: (force?: boolean) => Promise<void>;
   login: (email: string, password: string, organizationCode?: string) => Promise<any>;
   register: (payload: any) => Promise<any>;
+  sendOTP: (email: string) => Promise<void>;
   updateUser: (user: any) => void;
   logout: () => void;
 }
@@ -67,6 +68,10 @@ const useAuthStore = create<AuthState>((set, get) => ({
     localStorage.setItem('refreshToken', refreshToken);
     set({ user, isAuthenticated: true });
     return user;
+  },
+
+  sendOTP: async (email) => {
+    await api.post('/auth/send-otp', { email });
   },
 
   logout: () => {

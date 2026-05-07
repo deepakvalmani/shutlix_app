@@ -25,16 +25,32 @@ export default function RegisterPage() {
     role: 'student'
   });
 
-  const { register, updateUser } = useAuthStore();
+  const { register, updateUser, sendOTP } = useAuthStore();
   const navigate = useNavigate();
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1) {
       if (!form.name || !form.email || !form.password) {
         setError('All profile fields are mandatory');
         return;
       }
     }
+
+    if (step === 2) {
+      setLoading(true);
+      setError('');
+      try {
+        await sendOTP(form.email);
+        toast.success('Verification code sent to ' + form.email);
+      } catch (err: any) {
+        console.error('OTP Error:', err);
+        setError(err.response?.data?.message || 'Failed to send verification code. Please check your email.');
+        setLoading(false);
+        return;
+      }
+      setLoading(false);
+    }
+
     setError('');
     setStep(step + 1);
   };

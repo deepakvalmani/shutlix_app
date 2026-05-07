@@ -485,7 +485,7 @@ const PublicPage = () => {
             <p className="text-[10px] font-bold uppercase tracking-widest opacity-30">© 2026 SHUTLIX MOBILITY CORPORATION</p>
             <div className="flex items-center gap-2">
                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-               <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 text-[var(--text-3)]">All Systems Operational</span>
+               <span className="text-[10px] font-bold uppercase tracking-widest opacity-40 text-[var(--text-3)]">Developed by Jiya Turshani Deepak Raj and Ria Kumari</span>
             </div>
          </div>
       </footer>

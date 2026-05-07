@@ -133,7 +133,8 @@ export const verifyOTP = async (req: Request, res: Response, next: NextFunction)
   try {
     const { email, otp } = req.body;
     const stored = await redis.get(`otp:${email}`);
-    if (!stored || stored !== otp) return ApiResponse.error(res, 'Invalid or expired OTP', 400);
+    const incoming = String(otp).trim();
+    if (!stored || stored.trim() !== incoming) return ApiResponse.error(res, 'Invalid or expired OTP', 400);
 
     const tempToken = crypto.randomBytes(32).toString('hex');
     await redis.set(`tempToken:${tempToken}`, email, 1800);

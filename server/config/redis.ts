@@ -24,11 +24,13 @@ export const connectRedis = () => {
 export const getRedisClient = () => client;
 
 // ── Raw key store — caller passes the full key ──────────
-export const set = (key: string, value: any, ttlSeconds: number) => 
-  client?.setex(key, ttlSeconds, String(value));
+export const set = async (key: string, value: any, ttlSeconds: number): Promise<void> => {
+  if (!client) throw new Error('Redis client not connected');
+  await client.setex(key, ttlSeconds, String(value));
+};
 
 export const get = async (key: string): Promise<string | null> => {
-  if (!client) return null;
+  if (!client) throw new Error('Redis client not connected');
   return client.get(key);
 };
 

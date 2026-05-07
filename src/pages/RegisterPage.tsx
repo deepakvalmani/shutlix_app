@@ -25,7 +25,7 @@ export default function RegisterPage() {
     role: 'student'
   });
 
-  const { register, updateUser, sendOTP } = useAuthStore();
+  const { register, updateUser, sendOTP, verifyOTP } = useAuthStore();
   const navigate = useNavigate();
 
   const handleNext = async () => {
@@ -58,7 +58,10 @@ export default function RegisterPage() {
   const handleRegister = async (otp: string) => {
     setLoading(true);
     try {
-      // Attempt real registration
+      // 1. Verify OTP
+      await verifyOTP(form.email, otp);
+
+      // 2. Attempt real registration
       await register({ ...form, otp });
       toast.success('Registration successful. Welcome to ShutliX.');
       navigate('/');

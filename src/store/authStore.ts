@@ -72,11 +72,14 @@ const useAuthStore = create<AuthState>((set, get) => ({
   },
 
   sendOTP: async (email) => {
-    await api.post('/auth/send-otp', { email });
+    await api.post('/auth/send-otp', { email: email.toLowerCase().trim() });
   },
 
   verifyOTP: async (email, otp) => {
-    const { data } = await api.post('/auth/verify-otp', { email, otp });
+    const { data } = await api.post('/auth/verify-otp', { 
+      email: email.toLowerCase().trim(), 
+      otp 
+    });
     return data.data.tempToken;
   },
 

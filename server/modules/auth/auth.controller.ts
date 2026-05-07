@@ -24,7 +24,8 @@ const hashToken = (token: string) => crypto.createHash('sha256').update(token).d
 
 export const register = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { name, email, password, role, organizationId, studentId, licenseNumber } = req.body;
+    let { name, email, password, role, organizationId, studentId, licenseNumber } = req.body;
+    email = email.toLowerCase().trim();
     
     // Check if user exists
     const existing = await User.findOne({ email });
@@ -32,7 +33,7 @@ export const register = async (req: Request, res: Response, next: NextFunction) 
 
     const user = await User.create({
       name, email, password, role, organizationId, studentId, licenseNumber, 
-      isVerified: true // Assume verified if they could call this (or verify after)
+      isVerified: true
     });
 
     const accessToken = signToken(user._id.toString(), user.role, user.organizationId);
@@ -116,11 +117,15 @@ export const refreshToken = async (req: Request, res: Response, next: NextFuncti
 
 export const sendOTP = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { email } = req.body;
+      let { email } = req.body;
+      email = email.toLowerCase().trim();
+      
       const lastSent = await redis.get(`otp_sent:${email}`);
       if (lastSent) return ApiResponse.error(res, 'Please wait 60s before requesting again', 429);
 
       const otp = crypto.randomInt(100000, 999999).toString();
+      console.log(`[OTP] Generated ${otp} for ${email}`);
+      
       await redis.set(`otp:${email}`, otp, 300);
       await redis.set(`otp_sent:${email}`, 'true', 60);
 
@@ -131,10 +136,16 @@ export const sendOTP = async (req: Request, res: Response, next: NextFunction) =
 
 export const verifyOTP = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { email, otp } = req.body;
-    const stored = await redis.get(`otp:${email}`);
+    let { email, otp } = req.body;
+    email = email.toLowerCase().trim();
     const incoming = String(otp).trim();
-    if (!stored || stored.trim() !== incoming) return ApiResponse.error(res, 'Invalid or expired OTP', 400);
+
+    const stored = await redis.get(`otp:${email}`);
+    console.log(`[OTP] Verifying ${incoming} against ${stored} for ${email}`);
+
+    if (!stored || stored.trim() !== incoming) {
+      return ApiResponse.error(res, 'Invalid or expired OTP', 400);
+    }
 
     const tempToken = crypto.randomBytes(32).toString('hex');
     await redis.set(`tempToken:${tempToken}`, email, 1800);
